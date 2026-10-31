@@ -97,6 +97,7 @@
 		B6ABDA2A2971EEF700A46E80 /* ProgressVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6ABDA292971EEF700A46E80 /* ProgressVM.swift */; };
 		B15A9C0EF3475396990420AB /* NikkeMiniGamePatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C8BDBBB14D99EC1D276067 /* NikkeMiniGamePatch.swift */; };
 		7F61F232F84C670AFFAC3413 /* AppSettingsOverrides in Resources */ = {isa = PBXBuildFile; fileRef = 4BF3B61BE1B00F4FCC6108BB /* AppSettingsOverrides */; };
+		39A13E8144C7466C988FC6F2 /* PlayApp+Nikke.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39A13E8144C7466C988FC6F1 /* PlayApp+Nikke.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -211,6 +212,7 @@
 		B6ABDA292971EEF700A46E80 /* ProgressVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressVM.swift; sourceTree = "<group>"; };
 		52C8BDBBB14D99EC1D276067 /* NikkeMiniGamePatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayCover/Model/NikkeMiniGamePatch.swift"; sourceTree = SOURCE_ROOT; };
 		4BF3B61BE1B00F4FCC6108BB /* AppSettingsOverrides */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "PlayCover/AppSettingsOverrides"; sourceTree = SOURCE_ROOT; };
+		39A13E8144C7466C988FC6F1 /* PlayApp+Nikke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PlayCover/Model/PlayApp+Nikke.swift"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -395,6 +397,7 @@
 		8783CFEE26B8C52D00171041 = {
 			isa = PBXGroup;
 			children = (
+				39A13E8144C7466C988FC6F1 /* PlayApp+Nikke.swift */,
 				4BF3B61BE1B00F4FCC6108BB /* AppSettingsOverrides */,
 				52C8BDBBB14D99EC1D276067 /* NikkeMiniGamePatch.swift */,
 				6E66B0D0289F57B00099B907 /* Documentation.docc */,
@@ -648,6 +651,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				39A13E8144C7466C988FC6F2 /* PlayApp+Nikke.swift in Sources */,
 				B15A9C0EF3475396990420AB /* NikkeMiniGamePatch.swift in Sources */,
 				6E66B0D3289F5A010099B907 /* StoreAppView.swift in Sources */,
 				B67BC7162C3951E700315011 /* KeymapView.swift in Sources */,

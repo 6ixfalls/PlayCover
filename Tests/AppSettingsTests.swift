@@ -27,7 +27,10 @@ struct AppSettingsTests {
 
     static func plist(_ settings: AppSettings) throws -> [String: Any] {
         let data = try Data(contentsOf: settings.settingsUrl)
-        return try PropertyListSerialization.propertyList(from: data, format: nil) as! [String: Any]
+        guard let values = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] else {
+            preconditionFailure("Settings must be a property-list dictionary")
+        }
+        return values
     }
 
     static func main() throws {

@@ -167,7 +167,8 @@ struct NikkeSettingsView: View {
                     .help("Give controller input to PlayTools' touch mappings. Requires keymapping.")
                 Toggle("Rhythm game: show controls settings", isOn: $settings.settings.nikkeTTSMiniGameShowKeySettings)
                     .help("Applied on next launch. Unsupported game versions are left unchanged.")
-                Toggle("Rhythm game: map right Shift to equals", isOn: $settings.settings.nikkeTTSMiniGameRemapRightShift)
+                Toggle("Rhythm game: map right Shift to equals",
+                       isOn: $settings.settings.nikkeTTSMiniGameRemapRightShift)
                     .help("Includes Unity keyboard handling. Requires keymapping; restart NIKKE after changing.")
                 Text("Restart NIKKE after changing these options.")
                     .font(.caption).foregroundColor(.secondary)

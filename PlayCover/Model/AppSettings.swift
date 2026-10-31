@@ -103,20 +103,27 @@ struct AppSettingsData: Codable {
         blockSleepSpamming = try container.decodeIfPresent(Bool.self, forKey: .blockSleepSpamming) ?? false
         ignoreUnityKeyboardInitializationError = try container.decodeIfPresent(
             Bool.self, forKey: .ignoreUnityKeyboardInitializationError) ?? false
+        try decodeNikkeSettings(from: container)
+    }
+
+    private mutating func decodeNikkeSettings(from container: KeyedDecodingContainer<CodingKeys>) throws {
         let nikkeDefaults = NikkeSettings.defaults(bundleIdentifier: bundleIdentifier)
         disableINTLUtilsSwizzling = try container.decodeIfPresent(Bool.self, forKey: .disableINTLUtilsSwizzling)
             ?? nikkeDefaults["disableINTLUtilsSwizzling"] ?? false
         unityEngineForceLandscape = try container.decodeIfPresent(Bool.self, forKey: .unityEngineForceLandscape)
             ?? nikkeDefaults["unityEngineForceLandscape"] ?? false
-        unityEngineDisableOrientationCheck = try container.decodeIfPresent(Bool.self, forKey: .unityEngineDisableOrientationCheck)
+        unityEngineDisableOrientationCheck = try container.decodeIfPresent(
+            Bool.self, forKey: .unityEngineDisableOrientationCheck)
             ?? nikkeDefaults["unityEngineDisableOrientationCheck"] ?? false
         webViewSmartTextInput = try container.decodeIfPresent(Bool.self, forKey: .webViewSmartTextInput)
             ?? nikkeDefaults["webViewSmartTextInput"] ?? false
         disableBuiltinGamepad = try container.decodeIfPresent(Bool.self, forKey: .disableBuiltinGamepad)
             ?? nikkeDefaults["disableBuiltinGamepad"] ?? false
-        nikkeTTSMiniGameShowKeySettings = try container.decodeIfPresent(Bool.self, forKey: .nikkeTTSMiniGameShowKeySettings)
+        nikkeTTSMiniGameShowKeySettings = try container.decodeIfPresent(
+            Bool.self, forKey: .nikkeTTSMiniGameShowKeySettings)
             ?? nikkeDefaults["nikkeTTSMiniGameShowKeySettings"] ?? false
-        nikkeTTSMiniGameRemapRightShift = try container.decodeIfPresent(Bool.self, forKey: .nikkeTTSMiniGameRemapRightShift)
+        nikkeTTSMiniGameRemapRightShift = try container.decodeIfPresent(
+            Bool.self, forKey: .nikkeTTSMiniGameRemapRightShift)
             ?? nikkeDefaults["nikkeTTSMiniGameRemapRightShift"] ?? false
     }
 }
