@@ -61,10 +61,23 @@ changes, reconcile them before pushing. When changing PlayTools later, commit
 its source, update `PlayTools.revision`, `Cartfile` and `Cartfile.resolved` to that
 commit, then rebuild and push both repositories.
 
-The manual **Build NIKKE fork** GitHub Actions workflow builds the pinned source
-without Apple signing credentials and uploads a zipped, ad-hoc signed app.
-Official release/nightly signing workflows are gated to the official repository.
-The manual workflow does not publish a release.
+The **Build and release PlayCover HEAD** workflow runs automatically on pushes
+to `develop` and supports manual dispatch. It builds the triggering PlayCover
+commit with the exact `6ixfalls/PlayTools` `master` HEAD resolved at run start.
+That resolved SHA overrides the local pin only for the CI run. Both source
+revisions are recorded in `build-info.json`, and package dependencies remain
+locked. Local builds continue to use `PlayTools.revision` unless explicitly
+overridden with a full `PLAYTOOLS_REVISION` SHA.
+
+Successful runs automatically publish an immutable GitHub Release containing
+`PlayCover-NIKKE.dmg`, `PlayCover-NIKKE.zip`, `build-info.json`, and `SHA256SUMS`.
+The application is ad-hoc signed and signature-verified, without Apple signing
+credentials or notarization. Actions artifacts are retained as well. Official
+release/nightly signing workflows remain gated to the official repository.
+
+PlayTools separately builds and releases framework build inputs on pushes to
+`master`. For an app release after changing only PlayTools, manually dispatch
+the PlayCover workflow (or push its updated local pin).
 
 ## NIKKE settings
 

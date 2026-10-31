@@ -3,7 +3,11 @@
 set -euo pipefail
 repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
 tools_dir="${PLAYTOOLS_SOURCE:-$repo_dir/../PlayTools}"
-expected_revision="$(tr -d '[:space:]' < "$repo_dir/PlayTools.revision")"
+expected_revision="${PLAYTOOLS_REVISION:-$(tr -d '[:space:]' < "$repo_dir/PlayTools.revision")}"
+if ! [[ "$expected_revision" =~ ^[0-9a-f]{40}$ ]]; then
+    echo "PLAYTOOLS_REVISION must be a full commit SHA." >&2
+    exit 1
+fi
 if [ ! -d "$tools_dir/.git" ]; then
     echo "Clone https://github.com/6ixfalls/PlayTools beside PlayCover and check out $expected_revision." >&2
     exit 1
@@ -18,11 +22,8 @@ if ! git -C "$tools_dir" diff --quiet HEAD --; then
 fi
 mkdir -p "$repo_dir/.build" "$repo_dir/Carthage/Build"
 export FASTLANE=1 # Dependencies are prepared here; do not run the upstream update phase.
-xcodebuild -project "$tools_dir/PlayTools.xcodeproj" -scheme PlayTools -configuration Release \
-    -derivedDataPath "$tools_dir/.build/DerivedData" \
-    -clonedSourcePackagesDirPath "$tools_dir/.build/SourcePackages" \
-    -onlyUsePackageVersionsFromResolvedFile \
-    CODE_SIGNING_ALLOWED=NO ARCHS=arm64 build
+export PLAYTOOLS_REVISION="$expected_revision"
+bash "$tools_dir/scripts/build-framework.sh"
 
 framework="$tools_dir/.build/DerivedData/Build/Products/Release-iphoneos/PlayTools.framework"
 plugin="$tools_dir/.build/DerivedData/Build/Products/Release/AKInterface.bundle"

@@ -1,39 +1,74 @@
-name: Build NIKKE fork
+name: Build and release PlayCover HEAD
 on:
+  push:
+    branches: [develop]
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: playcover-head-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-26
+    timeout-minutes: 60
+    permissions:
+      contents: write
     steps:
-      - name: Check out PlayCover
+      - name: Check out PlayCover HEAD
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: PlayCover
           persist-credentials: false
-      - name: Read pinned PlayTools commit
+      - name: Resolve PlayTools HEAD to an exact commit
         id: playtools
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
-        run: echo "revision=$(tr -d '[:space:]' < PlayCover/PlayTools.revision)" >> "$GITHUB_OUTPUT"
-      - name: Check out PlayTools source
+        run: |
+          revision="$(gh api repos/6ixfalls/PlayTools/commits/master --jq .sha)"
+          [[ "$revision" =~ ^[0-9a-f]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          echo "PLAYTOOLS_REVISION=$revision" >> "$GITHUB_ENV"
+      - name: Check out resolved PlayTools source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: 6ixfalls/PlayTools
           ref: ${{ steps.playtools.outputs.revision }}
           path: PlayTools
           persist-credentials: false
-      - name: Test compatibility hooks and binary patch
+      - name: Test compatibility hooks, keyboard, settings and binary patch
         shell: bash
         run: |
           bash PlayTools/scripts/test-nikke.sh
           bash PlayCover/scripts/test-nikke.sh
-      - name: Build pinned source
+      - name: Build resolved source
         run: bash PlayCover/scripts/build-local.sh
-      - name: Package application
-        run: ditto -c -k --sequesterRsrc --keepParent PlayCover/.build/DerivedData/Build/Products/Nightly/PlayCover.app PlayCover-NIKKE.zip
+      - name: Package and verify application
+        run: bash PlayCover/scripts/package-release.sh
       - name: Upload application
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: PlayCover-NIKKE
-          path: PlayCover-NIKKE.zip
+          path: PlayCover/output/
+      - name: Publish HEAD release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          REVISION: ${{ github.sha }}
+          BUILD_NUMBER: ${{ github.run_number }}
+          BUILD_ATTEMPT: ${{ github.run_attempt }}
+        shell: bash
+        run: |
+          tag="nikke-${REVISION:0:12}-${BUILD_NUMBER}-${BUILD_ATTEMPT}"
+          cat > PlayCover/output/notes.md <<EOF
+          Automated source build of PlayCover ${REVISION} with PlayTools ${PLAYTOOLS_REVISION}.
+
+          Download PlayCover-NIKKE.dmg or PlayCover-NIKKE.zip. The application is ad-hoc signed, signature-verified, and not Apple-notarized. Includes the seven NIKKE compatibility options.
+
+          build-info.json records exact source revisions; SHA256SUMS covers both packages and the metadata. Compilation and compatibility tests passed; live game login and gameplay are not exercised by CI.
+          EOF
+          gh release create "$tag" PlayCover/output/PlayCover-NIKKE.dmg PlayCover/output/PlayCover-NIKKE.zip \
+            PlayCover/output/build-info.json PlayCover/output/SHA256SUMS \
+            --target "$REVISION" --title "PlayCover NIKKE HEAD ${REVISION:0:12}" \
+            --notes-file PlayCover/output/notes.md --latest
