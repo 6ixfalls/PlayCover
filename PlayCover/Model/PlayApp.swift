@@ -124,7 +124,6 @@ class PlayApp: BaseApp {
     }
 }
 
-
 // MARK: - Environment Management
 extension PlayApp {
     static let introspection: String = "/usr/lib/system/introspection"
