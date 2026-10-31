@@ -53,6 +53,14 @@ struct AppSettingsData: Codable {
     var blockSleepSpamming = false
     var ignoreUnityKeyboardInitializationError = false
 
+    var disableINTLUtilsSwizzling = false
+    var unityEngineForceLandscape = false
+    var unityEngineDisableOrientationCheck = false
+    var webViewSmartTextInput = false
+    var disableBuiltinGamepad = false
+    var nikkeTTSMiniGameShowKeySettings = false
+    var nikkeTTSMiniGameRemapRightShift = false
+
     init() {}
 
     // handle old 2.x settings where PlayChain did not exist yet
@@ -95,6 +103,21 @@ struct AppSettingsData: Codable {
         blockSleepSpamming = try container.decodeIfPresent(Bool.self, forKey: .blockSleepSpamming) ?? false
         ignoreUnityKeyboardInitializationError = try container.decodeIfPresent(
             Bool.self, forKey: .ignoreUnityKeyboardInitializationError) ?? false
+        let nikkeDefaults = NikkeSettings.defaults(bundleIdentifier: bundleIdentifier)
+        disableINTLUtilsSwizzling = try container.decodeIfPresent(Bool.self, forKey: .disableINTLUtilsSwizzling)
+            ?? nikkeDefaults["disableINTLUtilsSwizzling"] ?? false
+        unityEngineForceLandscape = try container.decodeIfPresent(Bool.self, forKey: .unityEngineForceLandscape)
+            ?? nikkeDefaults["unityEngineForceLandscape"] ?? false
+        unityEngineDisableOrientationCheck = try container.decodeIfPresent(Bool.self, forKey: .unityEngineDisableOrientationCheck)
+            ?? nikkeDefaults["unityEngineDisableOrientationCheck"] ?? false
+        webViewSmartTextInput = try container.decodeIfPresent(Bool.self, forKey: .webViewSmartTextInput)
+            ?? nikkeDefaults["webViewSmartTextInput"] ?? false
+        disableBuiltinGamepad = try container.decodeIfPresent(Bool.self, forKey: .disableBuiltinGamepad)
+            ?? nikkeDefaults["disableBuiltinGamepad"] ?? false
+        nikkeTTSMiniGameShowKeySettings = try container.decodeIfPresent(Bool.self, forKey: .nikkeTTSMiniGameShowKeySettings)
+            ?? nikkeDefaults["nikkeTTSMiniGameShowKeySettings"] ?? false
+        nikkeTTSMiniGameRemapRightShift = try container.decodeIfPresent(Bool.self, forKey: .nikkeTTSMiniGameRemapRightShift)
+            ?? nikkeDefaults["nikkeTTSMiniGameRemapRightShift"] ?? false
     }
 }
 
@@ -131,6 +154,7 @@ class AppSettings {
                                                 .appendingPathExtension("plist")
         var defaults = AppSettingsData()
         defaults.bundleIdentifier = info.bundleIdentifier
+        defaults.applyNikkeDefaults()
         settings = defaults
         if !decode() {
             preserveUnreadableSettingsIfPresent()
@@ -140,6 +164,8 @@ class AppSettings {
         if settings.bundleIdentifier != info.bundleIdentifier {
             settings.bundleIdentifier = info.bundleIdentifier
         }
+        // Persist newly introduced defaults for the injected framework as well.
+        if info.bundleIdentifier == NikkeSettings.bundleIdentifier { encode() }
     }
 
     public func sync() {
@@ -168,13 +194,20 @@ class AppSettings {
     public func reset() {
         var defaults = AppSettingsData()
         defaults.bundleIdentifier = info.bundleIdentifier
+        defaults.applyNikkeDefaults()
         settings = defaults
     }
 
     @discardableResult
     public func decode() -> Bool {
         do {
-            let data = try Data(contentsOf: settingsUrl)
+            var data = try Data(contentsOf: settingsUrl)
+            // Some older settings files predate the bundleIdentifier field.
+            if var plist = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
+               plist["bundleIdentifier"] == nil {
+                plist["bundleIdentifier"] = info.bundleIdentifier
+                data = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+            }
             let decoded = try PropertyListDecoder().decode(AppSettingsData.self, from: data)
             suppressPersistence = true
             settings = decoded
@@ -247,5 +280,32 @@ extension NSScreen {
         }
         IOObjectRelease(service)
         return modelIdentifier
+    }
+}
+
+// Defaults are applied only to missing keys, so existing per-app choices survive upgrades.
+enum NikkeSettings {
+    static let bundleIdentifier = "com.proximabeta.nikke"
+
+    static func defaults(bundleIdentifier: String) -> [String: Bool] {
+        guard bundleIdentifier == self.bundleIdentifier,
+              let url = Bundle.main.url(forResource: bundleIdentifier, withExtension: "json",
+                                        subdirectory: "AppSettingsOverrides"),
+              let data = try? Data(contentsOf: url),
+              let defaults = try? JSONDecoder().decode([String: Bool].self, from: data) else { return [:] }
+        return defaults
+    }
+}
+
+extension AppSettingsData {
+    mutating func applyNikkeDefaults() {
+        let defaults = NikkeSettings.defaults(bundleIdentifier: bundleIdentifier)
+        disableINTLUtilsSwizzling = defaults["disableINTLUtilsSwizzling"] ?? false
+        unityEngineForceLandscape = defaults["unityEngineForceLandscape"] ?? false
+        unityEngineDisableOrientationCheck = defaults["unityEngineDisableOrientationCheck"] ?? false
+        webViewSmartTextInput = defaults["webViewSmartTextInput"] ?? false
+        disableBuiltinGamepad = defaults["disableBuiltinGamepad"] ?? false
+        nikkeTTSMiniGameShowKeySettings = defaults["nikkeTTSMiniGameShowKeySettings"] ?? false
+        nikkeTTSMiniGameRemapRightShift = defaults["nikkeTTSMiniGameRemapRightShift"] ?? false
     }
 }

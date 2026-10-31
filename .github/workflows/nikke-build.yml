@@ -1,0 +1,39 @@
+name: Build NIKKE fork
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Check out PlayCover
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: PlayCover
+          persist-credentials: false
+      - name: Read pinned PlayTools commit
+        id: playtools
+        shell: bash
+        run: echo "revision=$(tr -d '[:space:]' < PlayCover/PlayTools.revision)" >> "$GITHUB_OUTPUT"
+      - name: Check out PlayTools source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: 6ixfalls/PlayTools
+          ref: ${{ steps.playtools.outputs.revision }}
+          path: PlayTools
+          persist-credentials: false
+      - name: Test compatibility hooks and binary patch
+        shell: bash
+        run: |
+          bash PlayTools/scripts/test-nikke.sh
+          bash PlayCover/scripts/test-nikke.sh
+      - name: Build pinned source
+        run: bash PlayCover/scripts/build-local.sh
+      - name: Package application
+        run: ditto -c -k --sequesterRsrc --keepParent PlayCover/.build/DerivedData/Build/Products/Nightly/PlayCover.app PlayCover-NIKKE.zip
+      - name: Upload application
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: PlayCover-NIKKE
+          path: PlayCover-NIKKE.zip

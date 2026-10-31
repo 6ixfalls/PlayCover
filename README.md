@@ -1,3 +1,5 @@
+> This 6ixfalls fork adds NIKKE compatibility on top of official PlayCover. See [NIKKE.md](NIKKE.md) for source builds, publishing, and validation.
+
 <div id="top"></div>
 
 ‎<h1 align="center">[![Contributors][contributors-shield]][contributors-url]

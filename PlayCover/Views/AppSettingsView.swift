@@ -76,6 +76,11 @@ struct AppSettingsView: View {
             }
 
             TabView {
+                if viewModel.app.info.bundleIdentifier == NikkeSettings.bundleIdentifier {
+                    NikkeSettingsView(settings: $viewModel.settings)
+                        .tabItem { Text("NIKKE") }
+                        .disabled(!(hasPlayTools ?? true))
+                }
                 KeymappingView(settings: $viewModel.settings)
                     .tabItem {
                         Text("settings.tab.km")
@@ -143,6 +148,32 @@ struct AppSettingsView: View {
         }
         .padding()
         .frame(height: 400)
+    }
+}
+
+struct NikkeSettingsView: View {
+    @Binding var settings: AppSettings
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10) {
+                Toggle("Disable INTLUtils swizzling", isOn: $settings.settings.disableINTLUtilsSwizzling)
+                    .help("Prevent the delegate-hook recursion that freezes NIKKE during startup.")
+                Toggle("Force Unity landscape", isOn: $settings.settings.unityEngineForceLandscape)
+                Toggle("Disable Unity orientation checks", isOn: $settings.settings.unityEngineDisableOrientationCheck)
+                Toggle("Smart text input in web views", isOn: $settings.settings.webViewSmartTextInput)
+                    .help("Requires Smart Keymapping in the Keymapping tab.")
+                Toggle("Disable built-in gamepad handling", isOn: $settings.settings.disableBuiltinGamepad)
+                    .help("Give controller input to PlayTools' touch mappings. Requires keymapping.")
+                Toggle("Rhythm game: show controls settings", isOn: $settings.settings.nikkeTTSMiniGameShowKeySettings)
+                    .help("Applied on next launch. Unsupported game versions are left unchanged.")
+                Toggle("Rhythm game: map right Shift to equals", isOn: $settings.settings.nikkeTTSMiniGameRemapRightShift)
+                    .help("Includes Unity keyboard handling. Requires keymapping; restart NIKKE after changing.")
+                Text("Restart NIKKE after changing these options.")
+                    .font(.caption).foregroundColor(.secondary)
+            }
+            .padding()
+        }
     }
 }
 
