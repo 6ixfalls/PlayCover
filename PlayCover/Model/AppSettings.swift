@@ -103,10 +103,11 @@ struct AppSettingsData: Codable {
         blockSleepSpamming = try container.decodeIfPresent(Bool.self, forKey: .blockSleepSpamming) ?? false
         ignoreUnityKeyboardInitializationError = try container.decodeIfPresent(
             Bool.self, forKey: .ignoreUnityKeyboardInitializationError) ?? false
-        try decodeNikkeSettings(from: container)
+        try decodeNikkeSettings(from: decoder)
     }
 
-    private mutating func decodeNikkeSettings(from container: KeyedDecodingContainer<CodingKeys>) throws {
+    private mutating func decodeNikkeSettings(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
         let nikkeDefaults = NikkeSettings.defaults(bundleIdentifier: bundleIdentifier)
         disableINTLUtilsSwizzling = try container.decodeIfPresent(Bool.self, forKey: .disableINTLUtilsSwizzling)
             ?? nikkeDefaults["disableINTLUtilsSwizzling"] ?? false
